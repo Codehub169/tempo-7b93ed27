@@ -60,7 +60,7 @@ if "messages" not in st.session_state:
 # --- Sidebar for API Key and Controls ---
 with st.sidebar:
     st.image("https://streamlit.io/images/brand/streamlit-logo-secondary-colormark-darktext.svg", width=200) # Placeholder logo
-    st.markdown("## DocuChat RAG \ud83d\udcac")
+    st.markdown("## DocuChat RAG \U0001F4AC")
     st.markdown("Upload your PDFs and chat with them using AI!")
 
     st.markdown("### Configuration")
