@@ -6,7 +6,7 @@ from services.rag_service import create_vector_store, get_rag_response, PROVIDED
 # --- Page Configuration ---
 st.set_page_config(
     page_title="DocuChat RAG",
-    page_icon="ud83dudcac",
+    page_icon="\U0001F4AC",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -60,7 +60,7 @@ if "messages" not in st.session_state:
 # --- Sidebar for API Key and Controls ---
 with st.sidebar:
     st.image("https://streamlit.io/images/brand/streamlit-logo-secondary-colormark-darktext.svg", width=200) # Placeholder logo
-    st.markdown("## DocuChat RAG ud83dudcac")
+    st.markdown("## DocuChat RAG \ud83d\udcac")
     st.markdown("Upload your PDFs and chat with them using AI!")
 
     st.markdown("### Configuration")
