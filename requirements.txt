@@ -1,6 +1,6 @@
-streamlit
-google-generativeai
-pymupdf
-faiss-cpu
-numpy
-streamlit-chat
+streamlit==1.45.1
+google-generativeai==0.8.5
+pymupdf==1.26.1
+faiss-cpu==1.11.0
+numpy==2.3.0
+streamlit-chat==0.1.1
