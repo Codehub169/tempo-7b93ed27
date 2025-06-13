@@ -82,7 +82,7 @@ with st.sidebar:
             st.error("Please enter your Google API Key to proceed.")
         elif uploaded_files:
             # Check if files are new or changed to avoid reprocessing
-            current_file_ids = sorted([f.id for f in uploaded_files])
+            current_file_ids = sorted([f.file_id for f in uploaded_files])
             if current_file_ids != st.session_state.uploaded_files_cache:
                 st.session_state.messages = [] # Reset chat if new docs are processed
                 st.session_state.processing_complete = False
@@ -151,4 +151,3 @@ else:
         st.info("Click 'Process Documents' in the sidebar to enable chat.")
     elif not uploaded_files and st.session_state.api_key:
         st.info("Please upload your PDF documents to get started.")
-
