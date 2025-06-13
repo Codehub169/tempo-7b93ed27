@@ -4,7 +4,7 @@ import faiss
 
 # Store the API key provided by the user
 # In a production app, use Streamlit secrets or environment variables
-PROVIDED_API_KEY = "AIzaSyCAH4QbvHnjo4hQXKMAhaI9KP8gr3WVMB4"
+PROVIDED_API_KEY = ""
 
 MODEL_NAME = "gemini-1.5-flash-preview-0514" # As per plan, using a close available model
 EMBEDDING_MODEL_NAME = "models/embedding-001"

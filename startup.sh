@@ -14,13 +14,13 @@ else
   echo "WARNING: requirements.txt not found. Skipping dependency installation."
 fi
 
-# Set the Google API Key from the environment variable provided during startup, or use a default if not set
-# The API key provided by the user during the interaction will be used here.
-export GOOGLE_API_KEY="AIzaSyCAH4QbvHnjo4hQXKMAhaI9KP8gr3WVMB4"
-
+# Ensure the GOOGLE_API_KEY environment variable is set.
+# This variable should be provided by the deployment environment.
+# The Streamlit application (app.py) prompts for an API key via its UI, which is then used for API calls.
+# This check ensures the environment is properly configured if underlying libraries or other components expect this variable.
 if [ -z "$GOOGLE_API_KEY" ]; then
   echo "ERROR: GOOGLE_API_KEY environment variable is not set."
-  echo "Please set it before running the application, e.g., export GOOGLE_API_KEY='your_api_key'"
+  echo "Please set it in your environment before running the application, e.g., export GOOGLE_API_KEY='your_api_key'"
   exit 1
 fi
 
