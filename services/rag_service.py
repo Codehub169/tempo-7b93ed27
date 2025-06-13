@@ -128,16 +128,65 @@ def generate_response(query, context_chunks, api_key):
 
     try:
         response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        print(f"Error generating response from Gemini: {e}")
-        # Check for specific safety/blockage reasons if the API provides them
+
+        # 1. Check for explicit blocking at the prompt level
+        if hasattr(response, 'prompt_feedback') and response.prompt_feedback and response.prompt_feedback.block_reason:
+            block_reason_message = f"Response blocked due to: {response.prompt_feedback.block_reason.name}"
+            if hasattr(response.prompt_feedback, 'safety_ratings') and response.prompt_feedback.safety_ratings:
+                ratings_info = [
+                    f"{rating.category.name.lower()} ({rating.probability.name.lower()})"
+                    for rating in response.prompt_feedback.safety_ratings
+                ]
+                if ratings_info:
+                    block_reason_message += f" (Details: {'; '.join(ratings_info)})"
+            return block_reason_message
+
+        # 2. If not blocked at prompt level, check the candidates
+        # response.text will attempt to access candidates[0].content.parts[0].text
+        # It will raise an error if candidates is empty or content is not text.
+        if not response.candidates:
+            return "Sorry, the model did not generate a response. This might be due to safety filters or other issues. Please try rephrasing."
+
+        first_candidate = response.candidates[0]
+        
+        # Check finish reason of the first candidate
+        # Valid finish reasons include STOP, MAX_TOKENS, SAFETY, RECITATION, OTHER
+        if first_candidate.finish_reason.name != "STOP":
+            safety_details = ""
+            if first_candidate.finish_reason.name == "SAFETY" and hasattr(first_candidate, 'safety_ratings') and first_candidate.safety_ratings:
+                ratings_info = [
+                    f"{rating.category.name.lower()} ({rating.probability.name.lower()})"
+                    for rating in first_candidate.safety_ratings if rating.probability.value > 2 # Often 0: unspecified, 1: negligible, 2: low, 3: medium, 4: high
+                ]
+                if ratings_info:
+                    safety_details = f" (Safety issues: {'; '.join(ratings_info)})"
+            return f"Sorry, the response could not be fully generated. Reason: {first_candidate.finish_reason.name}{safety_details}. Try rephrasing your query or checking the document content."
+
+        # 3. If finish_reason is STOP, try to get the text.
+        # The .text property itself might raise an error if the content part is missing or not text.
         try:
-            if response.prompt_feedback.block_reason:
-                 return f"Response blocked due to: {response.prompt_feedback.block_reason}"
-        except Exception:
-            pass # If feedback is not available or error is different
-        return "Sorry, I encountered an error while generating the response."
+            if response.text: # response.text can raise ValueError if content isn't text-based
+                return response.text
+            # If response.text is empty but no error, check parts manually (more robust for complex content)
+            elif first_candidate.content and first_candidate.content.parts:
+                all_parts_text = "".join(part.text for part in first_candidate.content.parts if hasattr(part, 'text'))
+                if all_parts_text:
+                    return all_parts_text
+                return "The model generated a response, but it contained no readable text. Please try again."
+            else: # Candidate exists, finish reason STOP, but no text and no parts.
+                return "The model generated an empty response. Please try rephrasing your query."
+        except ValueError as ve: # Specifically catch ValueError from response.text if content is not text
+            print(f"ValueError accessing response.text: {ve}. Candidate content: {first_candidate.content}")
+            return "Sorry, the model's response was not in a readable text format. Please try again."
+
+
+    except Exception as e:
+        # This catches errors from model.generate_content() itself (e.g., API key, network)
+        # or any other unexpected errors during response processing.
+        print(f"Error in generate_response: {type(e).__name__} - {e}")
+        # Provide a more specific error to the user.
+        return f"Sorry, I encountered an error ({type(e).__name__}): {str(e)}. Please check your API key, network connection, or try again later."
+
 
 def get_rag_response(query, vector_store, all_chunk_texts, api_key):
     """
@@ -157,6 +206,9 @@ def get_rag_response(query, vector_store, all_chunk_texts, api_key):
     
     relevant_chunks = search_vector_store(query, vector_store, all_chunk_texts, api_key, k=5)
     if not relevant_chunks:
-        return "I couldn't find any relevant information in the uploaded documents to answer your question."
+        # Check if vector store or all_chunk_texts might be empty leading to no relevant_chunks
+        if not all_chunk_texts:
+             return "No documents have been processed yet, or they contained no text. Please upload and process documents first."
+        return "I couldn't find any relevant information in the uploaded documents to answer your question. Try asking something more general about the documents or rephrasing."
     
     return generate_response(query, relevant_chunks, api_key)
