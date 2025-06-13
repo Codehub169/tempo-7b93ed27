@@ -6,7 +6,7 @@ import faiss
 # In a production app, use Streamlit secrets or environment variables
 PROVIDED_API_KEY = ""
 
-MODEL_NAME = "gemini-1.5-flash-preview-0514" # As per plan, using a close available model
+MODEL_NAME = "gemini-2.5-pro-preview-05-06" # Updated model name
 EMBEDDING_MODEL_NAME = "models/embedding-001"
 
 def configure_gemini_client(api_key):
